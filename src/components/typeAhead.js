@@ -23,7 +23,7 @@ export default class TypeAhead extends Component {
   onInputChange(query) {
     const { url, queryKey, itemsToShow } = this.props;
     const { suggestions, currentSuggestions } = this.state;
-    this.setState({ value: query }, () => {
+    this.setState({ value: query, activeIndex: -1 }, () => {
       if (query === "") {
         this.setState({ currentSuggestions: [], hint: "" });
         return;
@@ -111,6 +111,7 @@ export default class TypeAhead extends Component {
           currentSuggestions.length
         ) {
           this.onInputChange(currentSuggestions[0][displayKey]);
+          this.setState({activeIndex: 0})
         }
         break;
       case "Enter":

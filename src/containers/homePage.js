@@ -31,7 +31,7 @@ class HomePage extends Component {
           <TypeAhead
             url="/fetchCarsSuggestions"
             displayKey="name"
-            placeholder="Type you car name"
+            placeholder="Type your car name"
             onSuggestionClick={this.onSuggestionClick}
           />
           <div className="message-wrap">
