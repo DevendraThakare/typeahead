@@ -16,4 +16,4 @@ Build files and start local server in watch mode:
 ```js
 $ npm start // or 'yarn start'
 ```
-Open the web browser to `http://localhost:4000/`
+Open the web browser to `http://localhost:3000/`

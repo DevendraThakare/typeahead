@@ -1,6 +1,3 @@
-body{
-    background-color: aqua;
-}
 .typeahead{
     display: inline-block;
     .input-wrap{
@@ -29,5 +26,11 @@ body{
     }
     .dropdown-menu{
         width: 100%;
+        .active{
+            background-color: #a8d2ff;
+            &:hover{
+                background-color: #a8d2ff;
+            }
+        }
     }
 }

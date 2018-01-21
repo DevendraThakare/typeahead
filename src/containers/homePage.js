@@ -3,7 +3,9 @@ import { connect } from "react-redux";
 import { fetchCarsSuggestion } from "../actions/homePage";
 import TypeAhead from "../components/typeAhead";
 
-const mapStateToProps = state => ({});
+const mapStateToProps = state => ({
+    selectedSuggestion: state.homePage.selectedSuggestion
+});
 const mapDispatchToProps = dispatch => ({
   dispatch
 });
@@ -11,23 +13,30 @@ const mapDispatchToProps = dispatch => ({
 require("../styles/containers/homePage.scss");
 
 class HomePage extends Component {
-  suggestionRender(suggestion) {
-    return (
-      <a className="dropdown-item" href="#">
-        <span>{suggestion.name}</span>
-      </a>
-    );
+  constructor(props) {
+    super(props);
+    this.onSuggestionClick = this.onSuggestionClick.bind(this);
   }
-  // <TypeAhead url="/fetchCarsSuggestions" suggestionRender={this.suggestionRender} />
+  onSuggestionClick(e, suggestion) {
+    this.props.dispatch({
+      type: "SET_SELECTED_SUGGESTION",
+      payload: suggestion
+    });
+  }
   render() {
+      const {selectedSuggestion} = this.props
     return (
       <div className="home-page">
         <div className="search-box-wrap">
           <TypeAhead
             url="/fetchCarsSuggestions"
             displayKey="name"
-            placeholder="Search by brand"
+            placeholder="Type you car name"
+            onSuggestionClick={this.onSuggestionClick}
           />
+          <div className="message-wrap">
+            {selectedSuggestion && JSON.stringify(selectedSuggestion)}
+          </div>
         </div>
       </div>
     );

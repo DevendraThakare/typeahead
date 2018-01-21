@@ -1,9 +1,9 @@
 import { createReducer } from "./createReducer";
 const initialState = {
-    selectedSuggestion: {}
+    selectedSuggestion: null
 }
 export default createReducer(initialState, {
-    SELECT_SUGGESTION: (state, payload) => {
-        return Object.assign({}, state, { selectedSuggestion: payload.data })
+    SET_SELECTED_SUGGESTION: (state, payload) => {
+        return Object.assign({}, state, { selectedSuggestion: payload })
     }
 })

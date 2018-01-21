@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import axios from "axios";
+import index from "axios";
 
 export default class TypeAhead extends Component {
   constructor(props) {
@@ -7,65 +8,80 @@ export default class TypeAhead extends Component {
     this.state = {
       value: props.value || "",
       suggestions: {},
-      showHint: false,
-      selectedSuggestion:null,
-      hoveredSuggestion: null
+      currentSuggestions: [],
+      hint: "",
+      selectedSuggestion: null,
+      activeIndex: -1
     };
-    // this.axiosCancelToken = null;
     this.onChange = this.onChange.bind(this);
-    this.handleSuggestionClick = this.handleSuggestionClick.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
   }
   onChange(e) {
-    const { url, queryKey, itemsToShow } = this.props;
-    const { suggestions } = this.state;
     const query = e.target.value.trim();
-    this.setState({ value: query });
-    if (suggestions[query] || query === "") {
-      return;
-    }
-    this.fetchSuggestions(url, queryKey, query, itemsToShow);
+    this.onInputChange(query);
   }
+  onInputChange(query) {
+    const { url, queryKey, itemsToShow } = this.props;
+    const { suggestions, currentSuggestions } = this.state;
+    this.setState({ value: query }, () => {
+      if (query === "") {
+        this.setState({ currentSuggestions: [], hint: "" });
+        return;
+      }
+      if (suggestions[query] && suggestions[query].length) {
+        this.setState({
+          currentSuggestions: suggestions[query],
+          hint: this.getHint(suggestions[query][0])
+        });
+        return;
+      }
+      this.fetchSuggestions(url, queryKey, query, itemsToShow);
+    });
+  }
+
   fetchSuggestions(url, queryKey = "q", query, itemsToShow = 5) {
     let params = {};
     params[queryKey] = query;
-    // if(this.axiosCancelToken){
-    //     debugger
-    //     axiosCancelToken.cancel();
-    //     this.axiosCancelToken = null
-    // }
-    // this.axiosCancelToken = axios.CancelToken.source()
     axios
       .get(url, { requestId: "typeahead", params: params })
       .then(response => {
         this.setSuggestion(response.data, query);
-        // this.axiosCancelToken = null
-      })
+      });
   }
 
   handleSuggestionClick(index, e) {
-    const { onOptionClick } = this.props;
-    // _this.focus();
-    // _this.hideHint();
-    // _this.hideDropdown();
+    const { onSuggestionClick } = this.props;
+    const { currentSuggestions } = this.state;
     this.setSelectedSuggestion(index);
-    this.setState({})
-    if (typeof onOptionClick === "function") {
-      onOptionClick(e, props.options[index]);
+    if (typeof onSuggestionClick === "function") {
+      onSuggestionClick(e, currentSuggestions[index]);
     }
   }
 
-  setSelectedSuggestion(index){
-    const currentSuggestions = this.getCurrentSuggestions()
-    this.setState({selectedSuggestion: currentSuggestions[index]})
+  setSelectedSuggestion(index) {
+    const { currentSuggestions } = this.state;
+    const { displayKey } = this.props;
+    this.setState({
+      value: currentSuggestions[index][displayKey],
+      currentSuggestions: [],
+      hint: "",
+      selectedSuggestion: currentSuggestions[index],
+      activeIndex: -1
+    });
   }
-  onSuggestionMounseHover(index, e){
-
+  onSuggestionMounseHover(index, e) {
+    const { currentSuggestions } = this.state;
+    this.setState({ hint: this.getHint(currentSuggestions[index]) });
   }
   setSuggestion(suggestions, query) {
     let suggestionObj = {};
     suggestionObj[query] = suggestions;
     const updatedObj = Object.assign(this.state.suggestions, suggestionObj);
-    this.setState({ suggestions: updatedObj });
+    this.setState({
+      suggestions: updatedObj,
+      currentSuggestions: suggestions,
+      hint: suggestions.length ? this.getHint(suggestions[0]) : ""
+    });
   }
 
   suggestionRender(suggestion) {
@@ -77,29 +93,71 @@ export default class TypeAhead extends Component {
     );
   }
 
-  getHint() {
-    const currentSuggestions = this.getCurrentSuggestions();
+  handleKeyDown(event) {
+    const key = event.key;
+    const input = this.input;
+    const { hint, currentSuggestions, activeIndex } = this.state;
+    const { displayKey } = this.props;
+
+    switch (key) {
+      // case 'ArrowLeft':
+      case "ArrowRight":
+        if (
+          hint &&
+          hint !== "" &&
+          !event.shiftKey &&
+          this.isCursorAtEnd() &&
+          currentSuggestions &&
+          currentSuggestions.length
+        ) {
+          this.onInputChange(currentSuggestions[0][displayKey]);
+        }
+        break;
+      case "Enter":
+        if (activeIndex > -1 && activeIndex < currentSuggestions.length) {
+            this.handleSuggestionClick(activeIndex, event)
+        }
+        break;
+      case "Escape":
+        break;
+      case "ArrowUp":
+      case "ArrowDown":
+        if (currentSuggestions && currentSuggestions.length) {
+          event.preventDefault();
+          const dir = key === "ArrowUp" ? -1 : 1;
+          const activeIndex = this.state.activeIndex + dir;
+          if (activeIndex > -1 && activeIndex < currentSuggestions.length) {
+            this.setState({
+              activeIndex: activeIndex,
+              value: currentSuggestions[activeIndex][displayKey],
+              hint: ''
+            });
+          }
+        }
+
+        break;
+    }
+  }
+  isCursorAtEnd() {
+    const input = this.input;
+    const valueLength = this.state.value.length;
+    return (
+      input.selectionStart === valueLength && input.selectionEnd === valueLength
+    );
+  }
+
+  getHint(suggestion) {
     const { displayKey } = this.props;
     const value = this.state.value;
     const regex = new RegExp("^" + value, "i");
-    if (
-      value.length &&
-      currentSuggestions.length &&
-      regex.test(currentSuggestions[0][displayKey])
-    ) {
-      return currentSuggestions[0][displayKey].replace(regex, value);
+    if (value.length && regex.test(suggestion[displayKey])) {
+      return suggestion[displayKey].replace(regex, value);
     }
     return "";
   }
-  getCurrentSuggestions() {
-    const { value, suggestions } = this.state;
-    return suggestions[value] || [];
-  }
   render() {
     const { suggestionRender, placeholder, identifierKey } = this.props;
-    const { value } = this.state;
-    const suggestionsToRender = this.getCurrentSuggestions();
-    const hint = this.getHint();
+    const { value, hint, currentSuggestions, activeIndex } = this.state;
     return (
       <div className="typeahead dropdown">
         <div className="input-wrap">
@@ -111,22 +169,26 @@ export default class TypeAhead extends Component {
           />
           <input
             type="text"
+            ref={ref => {
+              this.input = ref;
+            }}
             placeholder={placeholder}
             className="input-field"
             value={value}
             autoComplete="off"
             onChange={this.onChange}
+            onKeyDown={this.handleKeyDown}
           />
         </div>
         <div
-          className={`suggestions-wrap dropdown-menu ${suggestionsToRender.length ? "show" : "hide"}`}
+          className={`suggestions-wrap dropdown-menu ${currentSuggestions.length ? "show" : "hide"}`}
         >
-          {suggestionsToRender.map((suggestion, key) => {
+          {currentSuggestions.map((suggestion, key) => {
             return (
               <div
                 key={`${suggestion[identifierKey]}_${key}`}
                 onClick={this.handleSuggestionClick.bind(this, key)}
-                onMouseOver={this.onSuggestionMounseHover.bind(this, key)}
+                className={`${activeIndex === key ? "active" : ""}`}
               >
                 {suggestionRender
                   ? suggestionRender(suggestion)
