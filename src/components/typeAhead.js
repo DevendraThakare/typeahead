@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 import axios from "axios";
 import index from "axios";
 
@@ -111,12 +112,12 @@ export default class TypeAhead extends Component {
           currentSuggestions.length
         ) {
           this.onInputChange(currentSuggestions[0][displayKey]);
-          this.setState({activeIndex: 0})
+          this.setState({ activeIndex: 0 });
         }
         break;
       case "Enter":
         if (activeIndex > -1 && activeIndex < currentSuggestions.length) {
-            this.handleSuggestionClick(activeIndex, event)
+          this.handleSuggestionClick(activeIndex, event);
         }
         break;
       case "Escape":
@@ -131,7 +132,7 @@ export default class TypeAhead extends Component {
             this.setState({
               activeIndex: activeIndex,
               value: currentSuggestions[activeIndex][displayKey],
-              hint: ''
+              hint: ""
             });
           }
         }
@@ -202,3 +203,19 @@ export default class TypeAhead extends Component {
     );
   }
 }
+
+TypeAhead.propTypes = {
+  url: PropTypes.string.isRequired,
+  queryKey: PropTypes.string.isRequired,
+  displayKey:PropTypes.string,
+  identifierKey:PropTypes.string,
+  itemsToShow: PropTypes.number.isRequired,
+  suggestionRender: PropTypes.func,
+  onSuggestionClick:PropTypes.func
+};
+
+TypeAhead.defaultProps = {
+  queryKey: "q",
+  displayKey:"name",
+  identifierKey:"id"
+};
