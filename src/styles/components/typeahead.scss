@@ -1,0 +1,33 @@
+body{
+    background-color: aqua;
+}
+.typeahead{
+    display: inline-block;
+    .input-wrap{
+        display: inline-block;
+        position: relative;  
+    }
+    .input-field, .hint-field {
+      width: 396px;
+      height: 40px;
+      padding: 10px 12px;
+      line-height: 40px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      outline: none;
+    }
+    .input-field{
+        position: relative;
+        background-color: rgba($color: #000, $alpha: 0);
+    }
+    .hint-field {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      box-shadow: none;
+      color: #999;
+    }
+    .dropdown-menu{
+        width: 100%;
+    }
+}
