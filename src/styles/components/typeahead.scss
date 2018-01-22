@@ -26,11 +26,13 @@
     }
     .dropdown-menu{
         width: 100%;
-        .active{
-            background-color: #a8d2ff;
+        .dropdown-item{
             &:hover{
                 background-color: #a8d2ff;
             }
+        }
+        .active{
+            background-color: #a8d2ff;
         }
     }
 }

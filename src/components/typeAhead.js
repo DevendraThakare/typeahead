@@ -16,6 +16,8 @@ export default class TypeAhead extends Component {
     };
     this.onChange = this.onChange.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.hideSuggestions = this.hideSuggestions.bind(this);
+    this.showSuggestions = this.showSuggestions.bind(this);
   }
   onChange(e) {
     const query = e.target.value.trim();
@@ -49,7 +51,21 @@ export default class TypeAhead extends Component {
         this.setSuggestion(response.data, query);
       });
   }
-
+  hideSuggestions(e) {
+    this.setState({
+      currentSuggestions: [],
+      hint: "",
+      activeIndex: -1
+    });
+  }
+  showSuggestions(e) {
+    const { value, suggestions } = this.state;
+    const currentSuggestions = suggestions[value];
+    this.setState({
+      currentSuggestions: currentSuggestions,
+      hint: currentSuggestions.length ? this.getHint(currentSuggestions[0]) : ""
+    });
+  }
   handleSuggestionClick(index, e) {
     const { onSuggestionClick } = this.props;
     const { currentSuggestions } = this.state;
@@ -121,6 +137,9 @@ export default class TypeAhead extends Component {
         }
         break;
       case "Escape":
+        if (currentSuggestions && currentSuggestions.length) {
+          this.hideSuggestions(event);
+        }
         break;
       case "ArrowUp":
       case "ArrowDown":
@@ -180,6 +199,8 @@ export default class TypeAhead extends Component {
             autoComplete="off"
             onChange={this.onChange}
             onKeyDown={this.handleKeyDown}
+            onBlur={this.hideSuggestions}
+            onFocus={this.showSuggestions}
           />
         </div>
         <div
@@ -207,15 +228,16 @@ export default class TypeAhead extends Component {
 TypeAhead.propTypes = {
   url: PropTypes.string.isRequired,
   queryKey: PropTypes.string.isRequired,
-  displayKey:PropTypes.string,
-  identifierKey:PropTypes.string,
-  itemsToShow: PropTypes.number.isRequired,
+  displayKey: PropTypes.string,
+  identifierKey: PropTypes.string,
+  itemsToShow: PropTypes.number,
   suggestionRender: PropTypes.func,
-  onSuggestionClick:PropTypes.func
+  onSuggestionClick: PropTypes.func
 };
 
 TypeAhead.defaultProps = {
   queryKey: "q",
-  displayKey:"name",
-  identifierKey:"id"
+  displayKey: "name",
+  identifierKey: "id",
+  itemsToShow: 5
 };
